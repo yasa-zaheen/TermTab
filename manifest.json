@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "TUI New Tab",
+  "version": "1.0",
+  "description": "A minimal terminal-style new tab page with bookmarks",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": ["storage", "declarativeNetRequest", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "focus_block",
+        "enabled": false,
+        "path": "block_rules.json"
+      }
+    ]
+  }
+}

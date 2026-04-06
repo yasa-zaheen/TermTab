@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blocked</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #000000;
+      --widget-bg: #0a0a0a;
+      --fg: #cccccc;
+      --border: #2a2a2a;
+      --accent: #4ec9b0;
+      --accent-dim: #2d6b4f;
+      --red: #f44747;
+      --status-color: #555;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #e8e8e8;
+        --widget-bg: #ffffff;
+        --fg: #222222;
+        --border: #cccccc;
+        --accent: #2d6b4f;
+        --accent-dim: #4ec9b0;
+        --red: #c62828;
+        --status-color: #888;
+      }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .blocked-container {
+      text-align: center;
+      max-width: 500px;
+      background: var(--widget-bg);
+      border: 1px solid var(--border);
+    }
+
+    .blocked-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+    }
+
+    .blocked-header-title {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .blocked-header-title::before {
+      content: '▌ ';
+      color: var(--accent);
+    }
+
+    .blocked-border {
+      height: 1px;
+      background: var(--border);
+    }
+
+    .blocked-body {
+      padding: 24px 12px;
+    }
+
+    .blocked-title {
+      font-size: 24px;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .blocked-title::before {
+      content: '▌ ';
+      color: var(--red);
+    }
+
+    .blocked-message {
+      color: var(--fg);
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .blocked-quote {
+      margin-top: 32px;
+      color: var(--status-color);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .blocked-quote::before {
+      content: '"';
+      color: var(--accent-dim);
+    }
+
+    .blocked-quote::after {
+      content: '"';
+      color: var(--accent-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="blocked-container">
+    <div class="blocked-header">
+      <span class="blocked-header-title">focus mode active</span>
+    </div>
+    <div class="blocked-border"></div>
+    <div class="blocked-body">
+      <div class="blocked-title">access denied</div>
+      <div class="blocked-message">
+        this site is blocked while you're in focus mode.<br>
+        stay focused. you've got this.
+      </div>
+      <div class="blocked-quote">the pain of discipline is nothing like the pain of disappointment</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+  <div id="ascii-bg"></div>
+  <div class="tui-layout">
+    <div class="tui-column tui-column-left">
+      <div class="tui-widget tui-widget-search" id="widget-search">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">search</span>
+          <span class="tui-search-engine" id="search-engine-display">
+            <img class="tui-search-engine-icon" id="search-engine-icon" src="" alt="">
+            <span class="tui-search-engine-name" id="search-engine-name"></span>
+          </span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-search-row">
+            <span class="tui-prompt">❯</span>
+            <input type="text" id="search-input" class="tui-search-input" placeholder="search the web..." autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-prayer" id="widget-prayer" style="display:none;">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">prayer times</span>
+          <span class="tui-widget-status" id="prayer-status">loading...</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-prayer" id="prayer"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-bookmarks" id="widget-bookmarks">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">bookmarks</span>
+          <span class="tui-widget-status" id="bookmarks-status"></span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-bookmarks" id="bookmarks"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-news" id="widget-news">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">news</span>
+          <span class="tui-widget-status" id="news-status">loading...</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-news" id="news"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-islamic" id="widget-islamic" style="display:none;">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">reminders</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-islamic" id="islamic"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-zikr" id="widget-zikr" style="display:none;">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">zikr</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-zikr" id="zikr">
+            <div class="tui-zikr-count" id="zikr-count">0</div>
+            <div class="tui-zikr-label" id="zikr-label">press <span>[z]</span> to count</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tui-column tui-column-right">
+      <div class="tui-widget tui-widget-clock">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">clock</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-clock" id="clock"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-calendar">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">calendar</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-calendar" id="calendar"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-weather">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">weather</span>
+          <span class="tui-widget-status" id="weather-status">loading...</span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-weather" id="weather"></div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-focus" id="widget-focus">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">focus</span>
+          <span class="tui-widget-status" id="focus-status"></span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-focus" id="focus">
+            <div class="tui-focus-timer" id="focus-timer">--:--</div>
+            <div class="tui-focus-label" id="focus-label">press <span>[f]</span> to start</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tui-widget tui-widget-help">
+        <div class="tui-widget-body">
+          <div class="tui-help-minimal">press <span>[h]</span> for help</div>
+          <div class="tui-help-minimal" id="bg-status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="modal">
+    <div class="tui-modal-content">
+      <div class="tui-modal-header">add bookmark</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-input-row">
+          <span class="tui-prompt">name: </span>
+          <input type="text" id="bookmark-name" class="tui-input" placeholder="bookmark name" autofocus>
+        </div>
+        <div class="tui-input-row">
+          <span class="tui-prompt">url: </span>
+          <input type="text" id="bookmark-url" class="tui-input" placeholder="https://...">
+        </div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[enter] save</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="focus-modal">
+    <div class="tui-modal-content">
+      <div class="tui-modal-header">focus timer</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-focus-presets" id="focus-presets">
+          <div class="tui-focus-preset" data-minutes="15">15 min</div>
+          <div class="tui-focus-preset" data-minutes="25">25 min</div>
+          <div class="tui-focus-preset" data-minutes="45">45 min</div>
+          <div class="tui-focus-preset" data-minutes="60">60 min</div>
+        </div>
+        <div class="tui-input-row" style="margin-top: 12px;">
+          <span class="tui-prompt">custom: </span>
+          <input type="number" id="focus-custom" class="tui-input" placeholder="minutes" min="1" max="480">
+        </div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[enter] next</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="focus-pin-modal">
+    <div class="tui-modal-content">
+      <div class="tui-modal-header" id="focus-pin-header">set pin</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-pin-display" id="focus-pin-display">
+          <span class="tui-pin-dot"></span>
+          <span class="tui-pin-dot"></span>
+          <span class="tui-pin-dot"></span>
+          <span class="tui-pin-dot"></span>
+        </div>
+        <div class="tui-pin-hint" id="focus-pin-hint">enter a 4-digit pin</div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[0-9] enter pin</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="settings-modal">
+    <div class="tui-modal-content">
+      <div class="tui-modal-header">settings</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-settings-section">
+          <div class="tui-settings-label">search engine</div>
+          <div class="tui-settings-options" id="search-engine-options">
+            <div class="tui-settings-option" data-value="google">google</div>
+            <div class="tui-settings-option" data-value="duckduckgo">duckduckgo</div>
+            <div class="tui-settings-option" data-value="bing">bing</div>
+            <div class="tui-settings-option" data-value="brave">brave</div>
+            <div class="tui-settings-option" data-value="ecosia">ecosia</div>
+            <div class="tui-settings-option" data-value="yahoo">yahoo</div>
+          </div>
+        </div>
+        <div class="tui-settings-section">
+          <div class="tui-settings-label">temperature</div>
+          <div class="tui-settings-options" id="temp-options">
+            <div class="tui-settings-option" data-value="celsius">celsius</div>
+            <div class="tui-settings-option" data-value="fahrenheit">fahrenheit</div>
+          </div>
+        </div>
+        <div class="tui-settings-section">
+          <div class="tui-settings-label">clock format</div>
+          <div class="tui-settings-options" id="clock-options">
+            <div class="tui-settings-option" data-value="24h">24-hour</div>
+            <div class="tui-settings-option" data-value="12h">12-hour</div>
+          </div>
+        </div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[enter] save</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="themes-modal">
+    <div class="tui-modal-content tui-modal-wide">
+      <div class="tui-modal-header">themes</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-themes-grid" id="themes-grid">
+          <div class="tui-theme-card" data-theme="tui-dark" style="--preview-bg:#000000;--preview-widget:#0a0a0a;--preview-fg:#cccccc;--preview-border:#2a2a2a;--preview-accent:#4ec9b0;--preview-selected:#1a3a2a;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ terminal</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">terminal</div>
+          </div>
+          <div class="tui-theme-card" data-theme="monokai" style="--preview-bg:#272822;--preview-widget:#2d2e27;--preview-fg:#f8f8f2;--preview-border:#3e3d32;--preview-accent:#a6e22e;--preview-selected:#3e3d32;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ monokai</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">monokai</div>
+          </div>
+          <div class="tui-theme-card" data-theme="one-dark" style="--preview-bg:#282c34;--preview-widget:#21252b;--preview-fg:#abb2bf;--preview-border:#181a1f;--preview-accent:#61afef;--preview-selected:#2c313a;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ one dark</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">one dark</div>
+          </div>
+          <div class="tui-theme-card" data-theme="catppuccin" style="--preview-bg:#1e1e2e;--preview-widget:#181825;--preview-fg:#cdd6f4;--preview-border:#313244;--preview-accent:#f5c2e7;--preview-selected:#313244;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ catppuccin</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">catppuccin</div>
+          </div>
+          <div class="tui-theme-card" data-theme="dracula" style="--preview-bg:#282a36;--preview-widget:#21222c;--preview-fg:#f8f8f2;--preview-border:#44475a;--preview-accent:#bd93f9;--preview-selected:#44475a;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ dracula</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">dracula</div>
+          </div>
+          <div class="tui-theme-card" data-theme="nord" style="--preview-bg:#2e3440;--preview-widget:#3b4252;--preview-fg:#eceff4;--preview-border:#4c566a;--preview-accent:#88c0d0;--preview-selected:#4c566a;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ nord</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">nord</div>
+          </div>
+          <div class="tui-theme-card" data-theme="gruvbox" style="--preview-bg:#282828;--preview-widget:#3c3836;--preview-fg:#ebdbb2;--preview-border:#504945;--preview-accent:#b8bb26;--preview-selected:#504945;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ gruvbox</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">gruvbox</div>
+          </div>
+          <div class="tui-theme-card" data-theme="solarized" style="--preview-bg:#002b36;--preview-widget:#073642;--preview-fg:#839496;--preview-border:#0a404e;--preview-accent:#2aa198;--preview-selected:#0a404e;">
+            <div class="tui-theme-preview">
+              <div class="tui-theme-preview-bar" style="background:var(--preview-border);"></div>
+              <div class="tui-theme-preview-body" style="background:var(--preview-widget);">
+                <div class="tui-theme-preview-header" style="color:var(--preview-accent);">▌ solarized</div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-selected);width:70%;"></div>
+                <div class="tui-theme-preview-line" style="background:var(--preview-border);width:50%;"></div>
+              </div>
+            </div>
+            <div class="tui-theme-name">solarized</div>
+          </div>
+        </div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[enter] apply</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tui-modal" id="help-modal">
+    <div class="tui-modal-content">
+      <div class="tui-modal-header">keyboard shortcuts</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-help-list">
+          <div class="tui-help-row"><span class="tui-help-key">/</span><span>focus search</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">a</span><span>add bookmark</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">d</span><span>delete selected bookmark</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">enter</span><span>open selected item</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">↑ ↓</span><span>navigate bookmarks / news</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">0-9</span><span>quick select bookmark / open news</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">h</span><span>open this help</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">s</span><span>settings</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">t</span><span>themes</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">f</span><span>focus timer</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">esc</span><span>close modal / blur search</span></div>
+        </div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[esc] close</span>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="bg-upload" accept="image/*" style="display:none">
+  <script src="newtab.js"></script>
+</body>
+</html>

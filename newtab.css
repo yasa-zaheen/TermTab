@@ -1,0 +1,1404 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #000000;
+  --widget-bg: #0a0a0a;
+  --fg: #cccccc;
+  --border: #2a2a2a;
+  --accent: #4ec9b0;
+  --accent-dim: #2d6b4f;
+  --selected-bg: #1a3a2a;
+  --modal-bg: #0a0a0a;
+  --input-bg: #111111;
+  --red: #f44747;
+  --yellow: #dcdcaa;
+  --modal-overlay: rgba(0, 0, 0, 0.8);
+  --icon-filter: grayscale(100%) brightness(1.5);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #555;
+  --ascii-opacity: 0.08;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #e8e8e8;
+    --widget-bg: #ffffff;
+    --fg: #222222;
+    --border: #cccccc;
+    --accent: #2d6b4f;
+    --accent-dim: #4ec9b0;
+    --selected-bg: #d8ede4;
+    --modal-bg: #ffffff;
+    --input-bg: #f5f5f5;
+    --red: #c62828;
+    --yellow: #8a7a3a;
+    --modal-overlay: rgba(0, 0, 0, 0.4);
+    --icon-filter: grayscale(100%) brightness(0.7);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #888;
+    --ascii-opacity: 0.12;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 14px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#ascii-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+#ascii-bg pre {
+  font-size: 5px;
+  line-height: 5px;
+  letter-spacing: 0.5px;
+  white-space: pre;
+  margin: 0;
+  transform-origin: center center;
+}
+
+body.has-ascii-bg .tui-widget {
+  opacity: 0.9;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.tui-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100vh;
+  padding: 16px;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+body.loaded .tui-layout {
+  opacity: 1;
+}
+
+.tui-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tui-column-left {
+  flex: 2;
+  min-width: 0;
+}
+
+.tui-column-right {
+  flex: 1;
+  min-width: 260px;
+  max-width: 340px;
+}
+
+.tui-widget {
+  background: var(--widget-bg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: opacity 0.3s ease;
+}
+
+.tui-widget-bookmarks {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tui-widget-news {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.tui-widget-islamic {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tui-widget-zikr {
+  display: flex;
+  flex-direction: column;
+}
+
+.tui-widget-bookmarks {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.islamic-mode .tui-widget-bookmarks {
+  max-height: 160px;
+  flex: none;
+}
+
+.tui-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+
+.tui-widget-title {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-widget-title::before {
+  content: '▌ ';
+  color: var(--accent);
+}
+
+.tui-widget-status {
+  color: var(--status-color);
+  font-size: 11px;
+}
+
+.tui-widget-border {
+  height: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.tui-widget-body {
+  padding: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tui-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tui-search-row .tui-prompt {
+  color: var(--accent);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tui-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 14px;
+  outline: none;
+  padding: 4px 0;
+}
+
+.tui-search-input::placeholder {
+  color: var(--status-color);
+}
+
+.tui-search-engine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  transition: all 0.1s ease;
+}
+
+.tui-search-engine:hover {
+  border-color: var(--accent);
+  background: var(--selected-bg);
+}
+
+.tui-search-engine-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.tui-search-engine-name {
+  font-size: 11px;
+  color: var(--status-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-settings-section {
+  margin-bottom: 16px;
+}
+
+.tui-settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.tui-settings-label {
+  color: var(--accent);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.tui-settings-label::before {
+  content: '▌ ';
+  color: var(--accent);
+}
+
+.tui-settings-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tui-settings-option {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+  cursor: pointer;
+  color: var(--fg);
+  font-size: 12px;
+  transition: all 0.1s ease;
+  text-transform: lowercase;
+}
+
+.tui-settings-option:hover,
+.tui-settings-option.selected {
+  background: var(--selected-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tui-clock {
+  text-align: center;
+  padding: 6px 0;
+}
+
+.tui-clock-time {
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.tui-clock-date {
+  margin-top: 2px;
+  color: var(--status-color);
+  font-size: 11px;
+}
+
+.tui-calendar {
+  padding: 4px 0;
+}
+
+.tui-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tui-calendar-month {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-calendar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.tui-calendar-nav-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 11px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tui-calendar-nav-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tui-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.tui-calendar-day-header {
+  color: var(--status-color);
+  font-size: 10px;
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+
+.tui-calendar-day {
+  font-size: 11px;
+  padding: 4px 0;
+  color: var(--fg);
+}
+
+.tui-calendar-day.today {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tui-calendar-day.other-month {
+  color: var(--status-color);
+  opacity: 0.4;
+}
+
+.tui-weather {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tui-weather-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.tui-weather-temp {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.tui-weather-desc {
+  color: var(--fg);
+  font-size: 12px;
+}
+
+.tui-weather-details {
+  color: var(--status-color);
+  font-size: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+  margin-left: auto;
+}
+
+.tui-weather-empty {
+  color: var(--status-color);
+  font-size: 12px;
+}
+
+.tui-bookmarks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tui-bookmarks::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-bookmarks::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-bookmarks::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.tui-bookmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--fg);
+  position: relative;
+  transition: background 0.1s ease, color 0.1s ease;
+  flex-shrink: 0;
+}
+
+.tui-bookmark:hover,
+.tui-bookmark.selected {
+  background: var(--selected-bg);
+  color: var(--accent);
+}
+
+.tui-widget-bookmarks:not(.widget-active) .tui-bookmark:hover {
+  background: transparent;
+  color: var(--fg);
+}
+
+.tui-bookmark::before {
+  content: '>';
+  color: var(--accent);
+  opacity: 0;
+  position: absolute;
+  left: 2px;
+  transition: opacity 0.1s ease;
+}
+
+.tui-bookmark:hover::before,
+.tui-bookmark.selected::before {
+  opacity: 1;
+}
+
+.tui-widget-bookmarks:not(.widget-active) .tui-bookmark:hover::before {
+  opacity: 0;
+}
+
+.tui-bookmark:hover,
+.tui-bookmark.selected {
+  padding-left: 20px;
+}
+
+.tui-bookmark-index {
+  color: var(--status-color);
+  min-width: 20px;
+  text-align: right;
+  font-size: 11px;
+}
+
+.tui-bookmark-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  filter: var(--icon-filter);
+  transition: filter 0.1s ease;
+}
+
+.tui-bookmark:hover .tui-bookmark-icon,
+.tui-bookmark.selected .tui-bookmark-icon {
+  filter: var(--icon-filter-hover);
+}
+
+.tui-bookmark-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.tui-bookmark-url {
+  color: var(--status-color);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.tui-bookmark:hover .tui-bookmark-url,
+.tui-bookmark.selected .tui-bookmark-url {
+  color: var(--accent-dim);
+}
+
+.tui-bookmark-delete {
+  color: var(--red);
+  opacity: 0;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  transition: opacity 0.1s ease;
+}
+
+.tui-bookmark:hover .tui-bookmark-delete,
+.tui-bookmark.selected .tui-bookmark-delete {
+  opacity: 1;
+}
+
+.tui-empty {
+  color: var(--status-color);
+  text-align: center;
+  padding: 16px 0;
+  font-size: 12px;
+}
+
+.tui-empty-hint {
+  margin-top: 6px;
+}
+
+.tui-empty-hint span {
+  color: var(--yellow);
+}
+
+.tui-prayer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tui-prayer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+.tui-prayer-item.current {
+  background: var(--selected-bg);
+  color: var(--accent);
+}
+
+.tui-prayer-name {
+  color: var(--status-color);
+  text-transform: lowercase;
+}
+
+.tui-prayer-item.current .tui-prayer-name {
+  color: var(--accent);
+}
+
+.tui-prayer-time {
+  color: var(--fg);
+  font-weight: 700;
+}
+
+.tui-prayer-item.current .tui-prayer-time {
+  color: var(--accent);
+}
+
+.tui-islamic {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tui-islamic::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-islamic::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-islamic::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.tui-islamic-item {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.tui-islamic-item:hover {
+  border-color: var(--accent);
+  background: var(--selected-bg);
+}
+
+.tui-islamic-type {
+  font-size: 10px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.tui-islamic-text {
+  font-size: 12px;
+  color: var(--fg);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.tui-islamic-ref {
+  font-size: 10px;
+  color: var(--status-color);
+}
+
+.tui-zikr {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.tui-zikr-count {
+  color: var(--accent);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.tui-zikr-label {
+  margin-top: 4px;
+  color: var(--status-color);
+  font-size: 11px;
+}
+
+.tui-zikr-label span {
+  color: var(--yellow);
+}
+
+.tui-news {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 96px;
+  overflow-y: auto;
+}
+
+.tui-news::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-news::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-news::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.tui-news-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 8px;
+  text-decoration: none;
+  color: var(--fg);
+  transition: background 0.1s ease, color 0.1s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tui-news-item:hover {
+  background: var(--selected-bg);
+  color: var(--accent);
+}
+
+.tui-news-item.selected {
+  background: var(--selected-bg);
+  color: var(--accent);
+  padding-left: 18px;
+  position: relative;
+}
+
+.tui-news-item.selected::before {
+  content: '>';
+  color: var(--accent);
+  position: absolute;
+  left: 2px;
+}
+
+.tui-news-index {
+  color: var(--status-color);
+  min-width: 18px;
+  text-align: right;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-title {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tui-news-source {
+  color: var(--status-color);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-empty {
+  color: var(--status-color);
+  text-align: center;
+  padding: 12px 0;
+  font-size: 12px;
+}
+
+.tui-news::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-news::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-news::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.tui-news-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 4px 8px;
+  text-decoration: none;
+  color: var(--fg);
+  transition: background 0.1s ease, color 0.1s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tui-news-item:hover {
+  background: var(--selected-bg);
+  color: var(--accent);
+}
+
+.tui-news-item.selected {
+  background: var(--selected-bg);
+  color: var(--accent);
+  padding-left: 18px;
+  position: relative;
+}
+
+.tui-news-item.selected::before {
+  content: '>';
+  color: var(--accent);
+  position: absolute;
+  left: 2px;
+}
+
+.tui-news-index {
+  color: var(--status-color);
+  min-width: 18px;
+  text-align: right;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-title {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tui-news-source {
+  color: var(--status-color);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-index {
+  color: var(--status-color);
+  min-width: 18px;
+  text-align: right;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-source {
+  color: var(--status-color);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tui-news-empty {
+  color: var(--status-color);
+  text-align: center;
+  padding: 12px 0;
+  font-size: 12px;
+}
+
+.tui-help-minimal {
+  text-align: center;
+  font-size: 11px;
+  color: var(--status-color);
+}
+
+.tui-help-minimal span {
+  color: var(--yellow);
+}
+
+.tui-widget-help {
+  flex-shrink: 0;
+}
+
+.tui-help-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tui-help-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.tui-help-key {
+  color: var(--yellow);
+  font-size: 11px;
+  min-width: 70px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.tui-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-overlay);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.tui-modal.visible {
+  display: flex;
+}
+
+.tui-modal-content {
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  min-width: 380px;
+  max-width: 90vw;
+}
+
+.tui-modal-header {
+  padding: 8px 12px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-modal-header::before {
+  content: '▌ ';
+  color: var(--accent);
+}
+
+.tui-modal-body {
+  padding: 12px;
+}
+
+.tui-input-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tui-input-row:last-child {
+  margin-bottom: 0;
+}
+
+.tui-prompt {
+  color: var(--accent);
+  min-width: 50px;
+  font-size: 13px;
+}
+
+.tui-input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 13px;
+  padding: 5px 8px;
+  outline: none;
+  transition: border-color 0.1s ease;
+}
+
+.tui-input:focus {
+  border-color: var(--accent-dim);
+}
+
+.tui-input::placeholder {
+  color: var(--status-color);
+}
+
+.tui-modal-footer {
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  color: var(--status-color);
+  font-size: 11px;
+}
+
+.tui-modal-footer span {
+  color: var(--yellow);
+}
+
+.tui-separator {
+  color: var(--status-color) !important;
+}
+
+.tui-focus {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.tui-focus-timer {
+  color: var(--accent);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.tui-focus-timer.active {
+  color: var(--red);
+}
+
+.tui-focus-label {
+  margin-top: 6px;
+  color: var(--status-color);
+  font-size: 11px;
+}
+
+.tui-focus-label span {
+  color: var(--yellow);
+}
+
+.tui-focus-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tui-focus-preset {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+  cursor: pointer;
+  color: var(--fg);
+  transition: all 0.1s ease;
+}
+
+.tui-focus-preset:hover,
+.tui-focus-preset.selected {
+  background: var(--selected-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tui-pin-display {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.tui-pin-dot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-radius: 0;
+  transition: all 0.15s ease;
+}
+
+.tui-pin-dot.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.tui-pin-dot.error {
+  border-color: var(--red);
+  background: var(--red);
+}
+
+.tui-pin-hint {
+  text-align: center;
+  color: var(--status-color);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.tui-pin-hint.error {
+  color: var(--red);
+}
+
+.tui-modal-wide {
+  min-width: 560px;
+  max-width: 90vw;
+}
+
+.tui-themes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.tui-theme-card {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  padding: 8px;
+  transition: all 0.1s ease;
+}
+
+.tui-theme-card:hover,
+.tui-theme-card.selected {
+  border-color: var(--accent);
+}
+
+.tui-theme-preview {
+  border: 1px solid var(--preview-border);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.tui-theme-preview-bar {
+  height: 4px;
+  background: var(--preview-border);
+}
+
+.tui-theme-preview-body {
+  padding: 6px;
+}
+
+.tui-theme-preview-header {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tui-theme-preview-line {
+  height: 4px;
+  margin-bottom: 3px;
+  opacity: 0.6;
+}
+
+.tui-theme-name {
+  text-align: center;
+  font-size: 11px;
+  color: var(--status-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-theme-card:hover .tui-theme-name,
+.tui-theme-card.selected .tui-theme-name {
+  color: var(--accent);
+}
+
+/* Theme: Monokai */
+body.theme-monokai {
+  --bg: #272822;
+  --widget-bg: #2d2e27;
+  --fg: #f8f8f2;
+  --border: #3e3d32;
+  --accent: #a6e22e;
+  --accent-dim: #7a9a20;
+  --selected-bg: #3e3d32;
+  --modal-bg: #2d2e27;
+  --input-bg: #33342c;
+  --red: #f92672;
+  --yellow: #e6db74;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #75715e;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-monokai {
+    --bg: #faf3e3;
+    --widget-bg: #f5edd9;
+    --fg: #49483e;
+    --border: #e0d5c1;
+    --accent: #75a022;
+    --accent-dim: #5a7d1a;
+    --selected-bg: #e8dfc8;
+    --modal-bg: #f5edd9;
+    --input-bg: #ede5d0;
+    --red: #d32f2f;
+    --yellow: #a57800;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #9a8e7a;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: One Dark */
+body.theme-one-dark {
+  --bg: #282c34;
+  --widget-bg: #21252b;
+  --fg: #abb2bf;
+  --border: #181a1f;
+  --accent: #61afef;
+  --accent-dim: #4a8fd4;
+  --selected-bg: #2c313a;
+  --modal-bg: #21252b;
+  --input-bg: #1b1f26;
+  --red: #e06c75;
+  --yellow: #e5c07b;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #5c6370;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-one-dark {
+    --bg: #fafafa;
+    --widget-bg: #ffffff;
+    --fg: #383a42;
+    --border: #d4d4d4;
+    --accent: #4078f2;
+    --accent-dim: #2d5fd3;
+    --selected-bg: #e8e8e8;
+    --modal-bg: #ffffff;
+    --input-bg: #f0f0f0;
+    --red: #e45649;
+    --yellow: #c18401;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #a0a1a7;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: Catppuccin */
+body.theme-catppuccin {
+  --bg: #1e1e2e;
+  --widget-bg: #181825;
+  --fg: #cdd6f4;
+  --border: #313244;
+  --accent: #f5c2e7;
+  --accent-dim: #cba6f7;
+  --selected-bg: #313244;
+  --modal-bg: #181825;
+  --input-bg: #11111b;
+  --red: #f38ba8;
+  --yellow: #f9e2af;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #585b70;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-catppuccin {
+    --bg: #eff1f5;
+    --widget-bg: #e6e9ef;
+    --fg: #4c4f69;
+    --border: #ccd0da;
+    --accent: #ea76cb;
+    --accent-dim: #c85aaf;
+    --selected-bg: #dce0e8;
+    --modal-bg: #e6e9ef;
+    --input-bg: #dce0e8;
+    --red: #d20f39;
+    --yellow: #df8e1d;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #9ca0b0;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: Dracula */
+body.theme-dracula {
+  --bg: #282a36;
+  --widget-bg: #21222c;
+  --fg: #f8f8f2;
+  --border: #44475a;
+  --accent: #bd93f9;
+  --accent-dim: #9b6dd7;
+  --selected-bg: #44475a;
+  --modal-bg: #21222c;
+  --input-bg: #191a21;
+  --red: #ff5555;
+  --yellow: #f1fa8c;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #6272a4;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-dracula {
+    --bg: #f8f8f2;
+    --widget-bg: #ffffff;
+    --fg: #282a36;
+    --border: #d4d4d4;
+    --accent: #9b59b6;
+    --accent-dim: #7d3c98;
+    --selected-bg: #e8e8e8;
+    --modal-bg: #ffffff;
+    --input-bg: #f0f0f0;
+    --red: #e74c3c;
+    --yellow: #f39c12;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #999;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: Nord */
+body.theme-nord {
+  --bg: #2e3440;
+  --widget-bg: #3b4252;
+  --fg: #eceff4;
+  --border: #4c566a;
+  --accent: #88c0d0;
+  --accent-dim: #5e8a99;
+  --selected-bg: #4c566a;
+  --modal-bg: #3b4252;
+  --input-bg: #2e3440;
+  --red: #bf616a;
+  --yellow: #ebcb8b;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #60728a;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-nord {
+    --bg: #eceff4;
+    --widget-bg: #e5e9f0;
+    --fg: #2e3440;
+    --border: #d8dee9;
+    --accent: #5e81ac;
+    --accent-dim: #4a6a8f;
+    --selected-bg: #d8dee9;
+    --modal-bg: #e5e9f0;
+    --input-bg: #dce0e8;
+    --red: #bf616a;
+    --yellow: #d08770;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #8a97a8;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: Gruvbox */
+body.theme-gruvbox {
+  --bg: #282828;
+  --widget-bg: #3c3836;
+  --fg: #ebdbb2;
+  --border: #504945;
+  --accent: #b8bb26;
+  --accent-dim: #8a8c1c;
+  --selected-bg: #504945;
+  --modal-bg: #3c3836;
+  --input-bg: #282828;
+  --red: #fb4934;
+  --yellow: #fabd2f;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #7c6f64;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-gruvbox {
+    --bg: #fbf1c7;
+    --widget-bg: #ebdbb2;
+    --fg: #3c3836;
+    --border: #d5c4a1;
+    --accent: #79740e;
+    --accent-dim: #5a560a;
+    --selected-bg: #d5c4a1;
+    --modal-bg: #ebdbb2;
+    --input-bg: #d5c4a1;
+    --red: #cc241d;
+    --yellow: #b57614;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #928374;
+    --ascii-opacity: 0.1;
+  }
+}
+
+/* Theme: Solarized */
+body.theme-solarized {
+  --bg: #002b36;
+  --widget-bg: #073642;
+  --fg: #839496;
+  --border: #0a404e;
+  --accent: #2aa198;
+  --accent-dim: #1e7a73;
+  --selected-bg: #0a404e;
+  --modal-bg: #073642;
+  --input-bg: #002b36;
+  --red: #dc322f;
+  --yellow: #b58900;
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #586e75;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-solarized {
+    --bg: #fdf6e3;
+    --widget-bg: #eee8d5;
+    --fg: #657b83;
+    --border: #d3cbb8;
+    --accent: #2aa198;
+    --accent-dim: #1e7a73;
+    --selected-bg: #d3cbb8;
+    --modal-bg: #eee8d5;
+    --input-bg: #d3cbb8;
+    --red: #dc322f;
+    --yellow: #b58900;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #93a1a1;
+    --ascii-opacity: 0.1;
+  }
+}
