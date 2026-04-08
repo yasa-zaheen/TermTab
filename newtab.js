@@ -19,7 +19,6 @@ const weatherEl = document.getElementById('weather');
 const weatherStatus = document.getElementById('weather-status');
 const newsEl = document.getElementById('news');
 const newsStatus = document.getElementById('news-status');
-const searchInput = document.getElementById('search-input');
 const bgUpload = document.getElementById('bg-upload');
 const asciiBg = document.getElementById('ascii-bg');
 const focusModal = document.getElementById('focus-modal');
@@ -48,19 +47,6 @@ let focusStoredPin = null;
 
 let calendarDate = new Date();
 
-const searchEngines = {
-  google: { url: 'https://www.google.com/search?q=', icon: 'https://www.google.com/favicon.ico', name: 'google' },
-  duckduckgo: { url: 'https://duckduckgo.com/?q=', icon: 'https://duckduckgo.com/favicon.ico', name: 'duckduckgo' },
-  bing: { url: 'https://www.bing.com/search?q=', icon: 'https://www.bing.com/favicon.ico', name: 'bing' },
-  brave: { url: 'https://search.brave.com/search?q=', icon: 'https://brave.com/favicon.ico', name: 'brave' },
-  ecosia: { url: 'https://www.ecosia.org/search?q=', icon: 'https://www.ecosia.org/favicon.ico', name: 'ecosia' },
-  yahoo: { url: 'https://search.yahoo.com/search?p=', icon: 'https://www.yahoo.com/favicon.ico', name: 'yahoo' }
-};
-
-const searchEngineDisplay = document.getElementById('search-engine-display');
-const searchEngineIcon = document.getElementById('search-engine-icon');
-const searchEngineName = document.getElementById('search-engine-name');
-
 const quranVerses = [
   { text: "indeed, with hardship comes ease", ref: "surah ash-sharh 94:6", link: "https://quran.com/94/6" },
   { text: "and whoever puts their trust in allah, he will be enough for them", ref: "surah at-talaq 65:3", link: "https://quran.com/65/3" },
@@ -88,17 +74,11 @@ const hadiths = [
 ];
 
 async function getSettings() {
-  const result = await chrome.storage.local.get(['searchEngine', 'tempUnit', 'clockFormat']);
+  const result = await chrome.storage.local.get(['tempUnit', 'clockFormat']);
   return {
-    searchEngine: result.searchEngine || 'google',
     tempUnit: result.tempUnit || 'celsius',
     clockFormat: result.clockFormat || '24h'
   };
-}
-
-async function getSearchUrl() {
-  const settings = await getSettings();
-  return searchEngines[settings.searchEngine].url || searchEngines.google.url;
 }
 
 async function loadBookmarks() {
@@ -757,10 +737,6 @@ function toggleIslamicMode() {
   }
 }
 
-function isSearchFocused() {
-  return document.activeElement === searchInput;
-}
-
 function isFocusModalVisible() {
   return focusModal.classList.contains('visible');
 }
@@ -853,9 +829,6 @@ function hideSettingsModal() {
 
 async function loadSettingsOptions() {
   const settings = await getSettings();
-  document.querySelectorAll('#search-engine-options .tui-settings-option').forEach(opt => {
-    opt.classList.toggle('selected', opt.dataset.value === settings.searchEngine);
-  });
   document.querySelectorAll('#temp-options .tui-settings-option').forEach(opt => {
     opt.classList.toggle('selected', opt.dataset.value === settings.tempUnit);
   });
@@ -866,9 +839,6 @@ async function loadSettingsOptions() {
 
 async function saveSetting(key, value) {
   await chrome.storage.local.set({ [key]: value });
-  if (key === 'searchEngine') {
-    updateSearchEngineDisplay();
-  }
   if (key === 'tempUnit') {
     fetchWeather();
   }
@@ -973,40 +943,6 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
-  if (isSearchFocused()) {
-    if (e.key === 'Enter') {
-      (async () => {
-        const query = searchInput.value.trim();
-        if (query) {
-          const searchUrl = await getSearchUrl();
-          window.location.href = `${searchUrl}${encodeURIComponent(query)}`;
-        }
-      })();
-      e.preventDefault();
-    } else if (e.key === 'Escape') {
-      searchInput.blur();
-      document.body.focus();
-      e.preventDefault();
-    } else if (e.key === 'ArrowDown') {
-      searchInput.blur();
-      document.body.focus();
-      activeWidget = 'bookmarks';
-      if (bookmarks.length > 0) {
-        selectedIndex = 0;
-        render();
-      }
-      e.preventDefault();
-    }
-    return;
-  }
-
-  if (e.key === '/' && !modal.classList.contains('visible')) {
-    searchInput.focus();
-    searchInput.select();
-    e.preventDefault();
-    return;
-  }
-
   if (e.key === 'h' || e.key === 'H') {
     showHelpModal();
     e.preventDefault();
@@ -1038,7 +974,7 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (e.key === 'z' || e.key === 'Z') {
-    if (islamicMode && !isSearchFocused() && !modal.classList.contains('visible') && !isFocusModalVisible() && !isFocusPinModalVisible() && !isSettingsModalVisible() && !isThemesModalVisible() && !isHelpModalVisible()) {
+    if (islamicMode && !modal.classList.contains('visible') && !isFocusModalVisible() && !isFocusPinModalVisible() && !isSettingsModalVisible() && !isThemesModalVisible() && !isHelpModalVisible()) {
       incrementZikr();
       e.preventDefault();
     }
@@ -1143,14 +1079,6 @@ newsEl.addEventListener('scroll', () => {
   }
 });
 
-searchInput.addEventListener('focus', () => {
-  document.getElementById('widget-search').style.borderColor = 'var(--accent)';
-});
-
-searchInput.addEventListener('blur', () => {
-  document.getElementById('widget-search').style.borderColor = '';
-});
-
 bgUpload.addEventListener('change', (e) => {
   if (e.target.files[0]) {
     handleImageUpload(e.target.files[0]);
@@ -1163,17 +1091,6 @@ focusPresets.forEach(preset => {
     preset.classList.add('selected');
     focusPresetSelected = parseInt(preset.dataset.minutes);
     focusCustomInput.value = '';
-  });
-});
-
-searchEngineDisplay.addEventListener('click', () => {
-  showSettingsModal();
-});
-
-document.querySelectorAll('#search-engine-options .tui-settings-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    saveSetting('searchEngine', opt.dataset.value);
-    loadSettingsOptions();
   });
 });
 
@@ -1197,18 +1114,10 @@ document.querySelectorAll('.tui-theme-card').forEach(card => {
   });
 });
 
-async function updateSearchEngineDisplay() {
-  const settings = await getSettings();
-  const engine = searchEngines[settings.searchEngine];
-  searchEngineIcon.src = engine.icon;
-  searchEngineName.textContent = engine.name;
-}
-
 updateClock();
 setInterval(updateClock, 1000);
 updateFocusDisplay();
 setInterval(updateFocusDisplay, 1000);
-updateSearchEngineDisplay();
 renderCalendar();
 loadBookmarks();
 loadAsciiBg();
