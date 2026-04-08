@@ -39,6 +39,9 @@ const prayerStatus = document.getElementById('prayer-status');
 const islamicEl = document.getElementById('islamic');
 const zikrCountEl = document.getElementById('zikr-count');
 const zikrLabelEl = document.getElementById('zikr-label');
+const zikrResetBtn = document.getElementById('zikr-reset');
+const zikrListEl = document.getElementById('zikr-list');
+const zikrWidget = document.getElementById('widget-zikr');
 
 let focusPresetSelected = null;
 let focusPinMode = null;
@@ -71,6 +74,19 @@ const hadiths = [
   { text: "allah is gentle and loves gentleness in all matters", ref: "bukhari 6927", link: "https://sunnah.com/bukhari:6927" },
   { text: "the most beloved of deeds to allah are the most consistent of them, even if they are small", ref: "bukhari 6464", link: "https://sunnah.com/bukhari:6464" },
   { text: "a good word is charity", ref: "bukhari 2989", link: "https://sunnah.com/bukhari:2989" }
+];
+
+const zikrSuggestions = [
+  { arabic: "سُبْحَانَ ٱللَّٰهِ", transliteration: "subhanallah", translation: "glory be to allah", source: "quran 39:75" },
+  { arabic: "ٱلْحَمْدُ لِلَّٰهِ", transliteration: "alhamdulillah", translation: "all praise is due to allah", source: "quran 1:2" },
+  { arabic: "ٱللَّٰهُ أَكْبَرُ", transliteration: "allahu akbar", translation: "allah is the greatest", source: "quran 22:30" },
+  { arabic: "لَا إِلَٰهَ إِلَّا ٱللَّٰهُ", transliteration: "la ilaha illallah", translation: "there is no god but allah", source: "quran 37:35" },
+  { arabic: "أَسْتَغْفِرُ ٱللَّٰهَ", transliteration: "astaghfirullah", translation: "i seek forgiveness from allah", source: "quran 110:3" },
+  { arabic: "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِٱللَّٰهِ", transliteration: "la hawla wa la quwwata illa billah", translation: "there is no power nor strength except with allah", source: "quran 18:39" },
+  { arabic: "مَاشَاءَ ٱللَّٰهُ", transliteration: "masha'allah", translation: "what allah has willed", source: "quran 18:39" },
+  { arabic: "إِنَّا لِلَّٰهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ", transliteration: "inna lillahi wa inna ilayhi raji'un", translation: "indeed we belong to allah, and indeed to him we will return", source: "quran 2:156" },
+  { arabic: "رَبَّنَا آتِنَا فِي ٱلدُّنْيَا حَسَنَةً وَفِي ٱلْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ", transliteration: "rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina 'adhaban-nar", translation: "our lord, give us in this world good and in the hereafter good and protect us from the punishment of the fire", source: "quran 2:201" },
+  { arabic: "حَسْبُنَا ٱللَّٰهُ وَنِعْمَ ٱلْوَكِيلُ", transliteration: "hasbunallahu wa ni'mal wakil", translation: "allah is sufficient for us, and he is the best disposer of affairs", source: "quran 3:173" }
 ];
 
 async function getSettings() {
@@ -711,6 +727,17 @@ function resetZikr() {
   chrome.storage.local.set({ zikrCount });
 }
 
+function renderZikrList() {
+  zikrListEl.innerHTML = zikrSuggestions.map(zikr => `
+    <div class="tui-zikr-item">
+      <div class="tui-zikr-arabic">${zikr.arabic}</div>
+      <div class="tui-zikr-transliteration">${zikr.transliteration}</div>
+      <div class="tui-zikr-translation">${zikr.translation}</div>
+      <div class="tui-zikr-source">${zikr.source}</div>
+    </div>
+  `).join('');
+}
+
 function toggleIslamicMode() {
   islamicMode = !islamicMode;
   chrome.storage.local.set({ islamicMode });
@@ -718,7 +745,6 @@ function toggleIslamicMode() {
   const prayerWidget = document.getElementById('widget-prayer');
   const newsWidget = document.getElementById('widget-news');
   const islamicWidget = document.getElementById('widget-islamic');
-  const zikrWidget = document.getElementById('widget-zikr');
 
   if (islamicMode) {
     document.body.classList.add('islamic-mode');
@@ -728,6 +754,7 @@ function toggleIslamicMode() {
     zikrWidget.style.display = 'flex';
     fetchPrayerTimes();
     renderIslamic();
+    renderZikrList();
   } else {
     document.body.classList.remove('islamic-mode');
     prayerWidget.style.display = 'none';
@@ -1144,12 +1171,18 @@ fetchNews();
     document.getElementById('widget-zikr').style.display = 'flex';
     fetchPrayerTimes();
     renderIslamic();
+    renderZikrList();
   }
   if (result.zikrCount) {
     zikrCount = result.zikrCount;
     zikrCountEl.textContent = zikrCount;
   }
 })();
+
+zikrResetBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  resetZikr();
+});
 
 window.addEventListener('load', () => {
   document.body.setAttribute('tabindex', '-1');
