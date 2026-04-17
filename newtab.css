@@ -115,6 +115,22 @@ body.loaded .tui-layout {
   flex: 1;
   min-width: 260px;
   max-width: 340px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.tui-column-right::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-column-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-column-right::-webkit-scrollbar-thumb {
+  background: var(--border);
 }
 
 .tui-widget {
@@ -691,28 +707,59 @@ body.islamic-mode .tui-widget-bookmarks {
   color: var(--yellow);
 }
 
-.tui-prayer {
+.tui-widget-prayer {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+}
+
+.tui-widget-prayer .tui-widget-body {
+  padding: 6px 8px;
+}
+
+.tui-prayer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding-bottom: 1px;
+}
+
+.tui-prayer::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tui-prayer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-prayer::-webkit-scrollbar-thumb {
+  background: var(--border);
 }
 
 .tui-prayer-item {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
-  padding: 3px 6px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 2px 6px;
+  font-size: 10px;
+  line-height: 1.2;
+  border: 1px solid var(--border);
+  flex: 0 0 auto;
 }
 
 .tui-prayer-item.current {
   background: var(--selected-bg);
   color: var(--accent);
+  border-color: var(--accent-dim);
 }
 
 .tui-prayer-name {
   color: var(--status-color);
   text-transform: lowercase;
+  letter-spacing: 0.3px;
 }
 
 .tui-prayer-item.current .tui-prayer-name {
@@ -951,6 +998,72 @@ body.islamic-mode .tui-widget-bookmarks {
   font-size: 12px;
 }
 
+.tui-widget-mission {
+  flex-shrink: 0;
+}
+
+.tui-widget-mission.mission-pulse {
+  animation: missionPulse 0.6s ease;
+}
+
+@keyframes missionPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+  35% { box-shadow: 0 0 0 2px var(--accent); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+}
+
+.tui-mission {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tui-mission-text {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--fg);
+  border: 1px dashed var(--border);
+  padding: 8px 10px;
+  min-height: 56px;
+}
+
+.tui-mission-meta {
+  color: var(--status-color);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tui-mission-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tui-mission-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 10px;
+  padding: 6px 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tui-mission-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--selected-bg);
+}
+
+.tui-mission-btn.is-complete {
+  border-color: var(--accent-dim);
+  color: var(--accent-dim);
+}
+
 .tui-help-minimal {
   text-align: center;
   font-size: 11px;
@@ -959,6 +1072,17 @@ body.islamic-mode .tui-widget-bookmarks {
 
 .tui-help-minimal span {
   color: var(--yellow);
+}
+
+.tui-help-minimal.is-status {
+  min-height: 14px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.tui-help-minimal.is-status.active {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .tui-widget-help {
@@ -1167,6 +1291,74 @@ body.islamic-mode .tui-widget-bookmarks {
 .tui-modal-wide {
   min-width: 560px;
   max-width: 90vw;
+}
+
+.tui-modal-command {
+  min-width: 520px;
+  max-width: 90vw;
+}
+
+.tui-command-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.tui-command-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tui-command-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tui-command-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+.tui-command-item {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.tui-command-item:hover,
+.tui-command-item.selected {
+  border-color: var(--accent);
+  background: var(--selected-bg);
+}
+
+.tui-command-title {
+  font-size: 12px;
+  color: var(--fg);
+}
+
+.tui-command-key {
+  font-size: 10px;
+  color: var(--status-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.tui-command-item.selected .tui-command-key {
+  color: var(--accent-dim);
+}
+
+.tui-command-empty {
+  border: 1px dashed var(--border);
+  color: var(--status-color);
+  font-size: 12px;
+  text-align: center;
+  padding: 12px;
 }
 
 .tui-themes-grid {

@@ -42,11 +42,30 @@ const zikrLabelEl = document.getElementById('zikr-label');
 const zikrResetBtn = document.getElementById('zikr-reset');
 const zikrListEl = document.getElementById('zikr-list');
 const zikrWidget = document.getElementById('widget-zikr');
+const missionStatusEl = document.getElementById('mission-status');
+const missionTextEl = document.getElementById('mission-text');
+const missionMetaEl = document.getElementById('mission-meta');
+const missionRerollBtn = document.getElementById('mission-reroll');
+const missionCompleteBtn = document.getElementById('mission-complete');
+const commandModal = document.getElementById('command-modal');
+const commandInput = document.getElementById('command-input');
+const commandListEl = document.getElementById('command-list');
+const funStatusEl = document.getElementById('fun-status');
 
 let focusPresetSelected = null;
 let focusPinMode = null;
 let focusPinDigits = '';
 let focusStoredPin = null;
+let missionState = {
+  quest: '',
+  generatedDate: '',
+  lastCompletedDate: null,
+  streak: 0,
+  totalCompleted: 0
+};
+let commandSelectionIndex = 0;
+let filteredCommands = [];
+let funStatusTimeout = null;
 
 let calendarDate = new Date();
 
@@ -88,6 +107,76 @@ const zikrSuggestions = [
   { arabic: "رَبَّنَا آتِنَا فِي ٱلدُّنْيَا حَسَنَةً وَفِي ٱلْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ", transliteration: "rabbana atina fid-dunya hasanatan wa fil-akhirati hasanatan wa qina 'adhaban-nar", translation: "our lord, give us in this world good and in the hereafter good and protect us from the punishment of the fire", source: "quran 2:201" },
   { arabic: "حَسْبُنَا ٱللَّٰهُ وَنِعْمَ ٱلْوَكِيلُ", transliteration: "hasbunallahu wa ni'mal wakil", translation: "allah is sufficient for us, and he is the best disposer of affairs", source: "quran 3:173" }
 ];
+
+const THEME_NAMES = [
+  'tui-dark',
+  'monokai',
+  'one-dark',
+  'catppuccin',
+  'dracula',
+  'nord',
+  'gruvbox',
+  'solarized',
+  'rose-pine'
+];
+
+const missionPool = [
+  'deep work burst: 25 minutes with zero tab switching',
+  'keyboard ninja: use only shortcuts for 15 minutes',
+  'bookmark cleanup: delete 3 links you never use',
+  'learning sprint: read 10 pages of technical docs',
+  'ship mode: finish one task before opening social media',
+  'focus stack: complete two 15 minute timers back to back',
+  'inbox triage: close or archive 10 old tabs',
+  'code hygiene: rename one confusing variable today',
+  'gratitude break: write one win from this week',
+  'debug duel: solve one annoying bug you have been avoiding'
+];
+
+function dateKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function yesterdayKey() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return dateKey(d);
+}
+
+function pickMission(exclude = '') {
+  if (missionPool.length === 0) return 'do one meaningful thing without distractions';
+  if (missionPool.length === 1) return missionPool[0];
+  let quest = missionPool[Math.floor(Math.random() * missionPool.length)];
+  while (quest === exclude) {
+    quest = missionPool[Math.floor(Math.random() * missionPool.length)];
+  }
+  return quest;
+}
+
+function setFunStatus(message, duration = 2200) {
+  if (!funStatusEl) return;
+  funStatusEl.textContent = message;
+  funStatusEl.classList.add('active');
+  if (funStatusTimeout) clearTimeout(funStatusTimeout);
+  funStatusTimeout = setTimeout(() => {
+    funStatusEl.textContent = '';
+    funStatusEl.classList.remove('active');
+  }, duration);
+}
+
+function pulseMissionWidget() {
+  const widget = document.getElementById('widget-mission');
+  if (!widget) return;
+  widget.classList.remove('mission-pulse');
+  void widget.offsetWidth;
+  widget.classList.add('mission-pulse');
+  setTimeout(() => {
+    widget.classList.remove('mission-pulse');
+  }, 650);
+}
 
 async function getSettings() {
   const result = await chrome.storage.local.get(['tempUnit', 'clockFormat']);
@@ -298,7 +387,7 @@ function handlePinInput(digit) {
       } else if (focusPinMode === 'stop') {
         chrome.storage.local.get('focusPin').then(res => {
           if (focusPinDigits === res.focusPin) {
-            stopFocusTimer();
+            stopFocusTimer('manual');
             hideFocusPinModal();
           } else {
             showPinError('incorrect pin');
@@ -338,12 +427,18 @@ function startFocusTimer(minutes) {
   chrome.storage.local.set({ focusTimer: { endTime, minutes }, focusPin: focusStoredPin });
   chrome.runtime.sendMessage({ action: 'enableBlock' });
   focusStoredPin = null;
+  setFunStatus(`focus armed: ${minutes}m`);
   updateFocusDisplay();
 }
 
-function stopFocusTimer() {
+function stopFocusTimer(reason = 'manual') {
   chrome.storage.local.remove(['focusTimer', 'focusPin']);
   chrome.runtime.sendMessage({ action: 'disableBlock' });
+  if (reason === 'completed') {
+    setFunStatus('focus complete. great run.');
+  } else if (reason === 'manual') {
+    setFunStatus('focus stopped');
+  }
   updateFocusDisplay();
 }
 
@@ -352,7 +447,7 @@ async function updateFocusDisplay() {
   if (result.focusTimer && result.focusTimer.endTime) {
     const remaining = result.focusTimer.endTime - Date.now();
     if (remaining <= 0) {
-      stopFocusTimer();
+      stopFocusTimer('completed');
       return;
     }
     const mins = Math.floor(remaining / 60000);
@@ -643,7 +738,92 @@ function removeAsciiBg() {
   }
 }
 
-async function fetchPrayerTimes() {
+function normalizePrayerTime(rawTime) {
+  if (!rawTime) return '--:--';
+  const cleaned = String(rawTime).split(' ')[0].trim();
+  const [h, m] = cleaned.split(':');
+  if (h === undefined || m === undefined) return cleaned;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function isValidPrayerTimings(timings) {
+  return Boolean(
+    timings &&
+    timings.Fajr &&
+    timings.Sunrise &&
+    timings.Dhuhr &&
+    timings.Asr &&
+    timings.Maghrib &&
+    timings.Isha
+  );
+}
+
+function normalizePrayerTimings(timings) {
+  return {
+    Fajr: normalizePrayerTime(timings.Fajr),
+    Sunrise: normalizePrayerTime(timings.Sunrise),
+    Dhuhr: normalizePrayerTime(timings.Dhuhr),
+    Asr: normalizePrayerTime(timings.Asr),
+    Maghrib: normalizePrayerTime(timings.Maghrib),
+    Isha: normalizePrayerTime(timings.Isha)
+  };
+}
+
+async function loadPrayerTimesCacheForToday() {
+  const result = await chrome.storage.local.get('prayerTimesCache');
+  const cache = result.prayerTimesCache;
+  if (!cache || cache.date !== dateKey()) {
+    return null;
+  }
+  if (!isValidPrayerTimings(cache.timings)) {
+    return null;
+  }
+  return normalizePrayerTimings(cache.timings);
+}
+
+async function savePrayerTimesCacheForToday(timings) {
+  if (!isValidPrayerTimings(timings)) {
+    return;
+  }
+  await chrome.storage.local.set({
+    prayerTimesCache: {
+      date: dateKey(),
+      timings: normalizePrayerTimings(timings)
+    }
+  });
+}
+
+function renderPrayerTimes(timings) {
+  const normalized = normalizePrayerTimings(timings);
+  const prayers = [
+    { name: 'fajr', time: normalized.Fajr },
+    { name: 'sunrise', time: normalized.Sunrise },
+    { name: 'dhuhr', time: normalized.Dhuhr },
+    { name: 'asr', time: normalized.Asr },
+    { name: 'maghrib', time: normalized.Maghrib },
+    { name: 'isha', time: normalized.Isha }
+  ];
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  let currentPrayer = -1;
+  for (let i = prayers.length - 1; i >= 0; i--) {
+    const [h, m] = prayers[i].time.split(':').map(Number);
+    if (!Number.isNaN(h) && !Number.isNaN(m) && currentMinutes >= h * 60 + m) {
+      currentPrayer = i;
+      break;
+    }
+  }
+
+  prayerEl.innerHTML = prayers.map((p, i) => `
+    <div class="tui-prayer-item ${i === currentPrayer ? 'current' : ''}">
+      <span class="tui-prayer-name">${p.name}</span>
+      <span class="tui-prayer-time">${p.time}</span>
+    </div>
+  `).join('');
+}
+
+async function requestPrayerTimesFromBackground() {
   try {
     const response = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error('timeout')), 10000);
@@ -656,40 +836,61 @@ async function fetchPrayerTimes() {
         }
       });
     });
+    if (response && response.success && response.timings) {
+      return response.timings;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
-    if (!response || !response.success) {
-      throw new Error(response?.error || 'no response');
+async function fetchPrayerTimesFromApis() {
+  const weatherResp = await fetch('https://wttr.in/?format=j1');
+  if (!weatherResp.ok) {
+    throw new Error(`location lookup failed (${weatherResp.status})`);
+  }
+  const weatherData = await weatherResp.json();
+  const nearestArea = weatherData?.nearest_area?.[0];
+  const latitude = nearestArea?.latitude;
+  const longitude = nearestArea?.longitude;
+  if (!latitude || !longitude) {
+    throw new Error('location data unavailable');
+  }
+
+  const prayerResp = await fetch(
+    `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&method=2`
+  );
+  if (!prayerResp.ok) {
+    throw new Error(`prayer api failed (${prayerResp.status})`);
+  }
+  const prayerData = await prayerResp.json();
+  const timings = prayerData?.data?.timings;
+  if (!timings) {
+    throw new Error('invalid prayer timing response');
+  }
+  return timings;
+}
+
+async function fetchPrayerTimes() {
+  prayerStatus.textContent = 'loading...';
+  try {
+    const cachedTimings = await loadPrayerTimesCacheForToday();
+    if (cachedTimings) {
+      renderPrayerTimes(cachedTimings);
+      prayerStatus.textContent = '';
+      return;
     }
 
-    const timings = response.timings;
-    const prayers = [
-      { name: 'fajr', time: timings.Fajr },
-      { name: 'sunrise', time: timings.Sunrise },
-      { name: 'dhuhr', time: timings.Dhuhr },
-      { name: 'asr', time: timings.Asr },
-      { name: 'maghrib', time: timings.Maghrib },
-      { name: 'isha', time: timings.Isha }
-    ];
-
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    let currentPrayer = -1;
-    for (let i = prayers.length - 1; i >= 0; i--) {
-      const [h, m] = prayers[i].time.split(':').map(Number);
-      if (currentMinutes >= h * 60 + m) {
-        currentPrayer = i;
-        break;
-      }
+    let timings = await requestPrayerTimesFromBackground();
+    if (!timings) {
+      timings = await fetchPrayerTimesFromApis();
     }
-
-    prayerEl.innerHTML = prayers.map((p, i) => `
-      <div class="tui-prayer-item ${i === currentPrayer ? 'current' : ''}">
-        <span class="tui-prayer-name">${p.name}</span>
-        <span class="tui-prayer-time">${p.time}</span>
-      </div>
-    `).join('');
+    await savePrayerTimesCacheForToday(timings);
+    renderPrayerTimes(timings);
     prayerStatus.textContent = '';
   } catch (err) {
+    console.error('prayer times error:', err);
     prayerEl.innerHTML = `<div class="tui-weather-empty">unable to fetch prayer times</div>`;
     prayerStatus.textContent = 'error';
   }
@@ -762,6 +963,169 @@ function toggleIslamicMode() {
     islamicWidget.style.display = 'none';
     zikrWidget.style.display = 'none';
   }
+}
+
+async function saveMissionState() {
+  await chrome.storage.local.set({ missionState });
+}
+
+function renderMission() {
+  if (!missionTextEl || !missionMetaEl || !missionStatusEl || !missionCompleteBtn) return;
+  const today = dateKey();
+  const completedToday = missionState.lastCompletedDate === today;
+  missionTextEl.textContent = missionState.quest || pickMission();
+  missionMetaEl.textContent = completedToday ? 'today: complete' : 'today: in progress';
+  missionStatusEl.textContent = `streak ${missionState.streak || 0} | total ${missionState.totalCompleted || 0}`;
+  missionCompleteBtn.classList.toggle('is-complete', completedToday);
+  missionCompleteBtn.textContent = completedToday ? '[x] done' : '[x] complete';
+}
+
+async function loadMissionState() {
+  const today = dateKey();
+  const result = await chrome.storage.local.get('missionState');
+  const saved = result.missionState || {};
+  missionState = {
+    quest: saved.quest || '',
+    generatedDate: saved.generatedDate || '',
+    lastCompletedDate: saved.lastCompletedDate || null,
+    streak: Number.isFinite(saved.streak) ? saved.streak : 0,
+    totalCompleted: Number.isFinite(saved.totalCompleted) ? saved.totalCompleted : 0
+  };
+
+  if (!missionState.quest || missionState.generatedDate !== today) {
+    missionState.quest = pickMission(missionState.quest);
+    missionState.generatedDate = today;
+    await saveMissionState();
+  }
+  renderMission();
+}
+
+async function rerollMission(showFeedback = true) {
+  missionState.quest = pickMission(missionState.quest);
+  missionState.generatedDate = dateKey();
+  await saveMissionState();
+  renderMission();
+  if (showFeedback) {
+    setFunStatus('mission rerolled');
+  }
+}
+
+async function completeMission(showFeedback = true) {
+  const today = dateKey();
+  if (missionState.lastCompletedDate === today) {
+    if (showFeedback) {
+      setFunStatus('mission already complete today');
+    }
+    return false;
+  }
+
+  missionState.streak = missionState.lastCompletedDate === yesterdayKey()
+    ? (missionState.streak || 0) + 1
+    : 1;
+  missionState.totalCompleted = (missionState.totalCompleted || 0) + 1;
+  missionState.lastCompletedDate = today;
+  await saveMissionState();
+  renderMission();
+  pulseMissionWidget();
+  if (showFeedback) {
+    setFunStatus(`mission complete. streak ${missionState.streak}`);
+  }
+  return true;
+}
+
+async function randomizeTheme(showFeedback = true) {
+  const result = await chrome.storage.local.get('theme');
+  const currentTheme = result.theme || 'tui-dark';
+  const candidates = THEME_NAMES.filter(t => t !== currentTheme);
+  const nextTheme = candidates[Math.floor(Math.random() * candidates.length)] || currentTheme;
+  await applyTheme(nextTheme);
+  if (showFeedback) {
+    setFunStatus(`theme: ${nextTheme}`);
+  }
+}
+
+async function startQuickFocus(minutes = 25) {
+  const result = await chrome.storage.local.get('focusTimer');
+  if (result.focusTimer && result.focusTimer.endTime && result.focusTimer.endTime > Date.now()) {
+    setFunStatus('focus already active');
+    return;
+  }
+  focusStoredPin = null;
+  startFocusTimer(minutes);
+}
+
+function isCommandModalVisible() {
+  return commandModal.classList.contains('visible');
+}
+
+function showCommandModal() {
+  commandModal.classList.add('visible');
+  commandInput.value = '';
+  commandSelectionIndex = 0;
+  renderCommandList();
+  commandInput.focus();
+}
+
+function hideCommandModal() {
+  commandModal.classList.remove('visible');
+}
+
+function getCommandItems() {
+  return [
+    { label: 'open settings', key: 's', keywords: 'preferences options', run: () => showSettingsModal() },
+    { label: 'open themes', key: 't', keywords: 'colors appearance', run: () => showThemesModal() },
+    { label: 'open help', key: 'h', keywords: 'shortcuts', run: () => showHelpModal() },
+    { label: 'toggle islamic mode', key: 'e', keywords: 'prayer zikr reminders', run: () => toggleIslamicMode() },
+    { label: 'start quick focus (25m)', key: 'f', keywords: 'pomodoro timer', run: () => startQuickFocus(25) },
+    { label: 'theme roulette', key: 'y', keywords: 'random theme', run: () => randomizeTheme() },
+    { label: 'reroll mission', key: 'q', keywords: 'daily quest', run: () => rerollMission() },
+    { label: 'complete mission', key: 'x', keywords: 'daily quest streak', run: () => completeMission() },
+    { label: 'refresh weather', key: '-', keywords: 'wttr', run: () => fetchWeather() },
+    { label: 'refresh news', key: '-', keywords: 'reddit rss', run: () => fetchNews() },
+    { label: 'upload ascii background', key: 'i', keywords: 'image wallpaper', run: () => bgUpload.click() },
+    { label: 'clear ascii background', key: 'r', keywords: 'remove background', run: () => removeAsciiBg() }
+  ];
+}
+
+function renderCommandList() {
+  if (!commandListEl || !commandInput) return;
+  const query = commandInput.value.trim().toLowerCase();
+  filteredCommands = getCommandItems().filter(cmd => (
+    `${cmd.label} ${cmd.keywords || ''}`.toLowerCase().includes(query)
+  ));
+
+  if (filteredCommands.length === 0) {
+    commandSelectionIndex = 0;
+    commandListEl.innerHTML = `<div class="tui-command-empty">no commands match</div>`;
+    return;
+  }
+
+  if (commandSelectionIndex >= filteredCommands.length) {
+    commandSelectionIndex = filteredCommands.length - 1;
+  }
+  if (commandSelectionIndex < 0) {
+    commandSelectionIndex = 0;
+  }
+
+  commandListEl.innerHTML = filteredCommands.map((cmd, i) => `
+    <div class="tui-command-item ${i === commandSelectionIndex ? 'selected' : ''}" data-cmd-index="${i}">
+      <span class="tui-command-title">${escapeHtml(cmd.label)}</span>
+      <span class="tui-command-key">${escapeHtml(cmd.key)}</span>
+    </div>
+  `).join('');
+}
+
+function navigateCommandList(direction) {
+  if (!filteredCommands.length) return;
+  commandSelectionIndex = (commandSelectionIndex + direction + filteredCommands.length) % filteredCommands.length;
+  renderCommandList();
+}
+
+async function runSelectedCommand() {
+  if (!filteredCommands.length) return;
+  const cmd = filteredCommands[commandSelectionIndex];
+  hideCommandModal();
+  await Promise.resolve(cmd.run());
 }
 
 function isFocusModalVisible() {
@@ -898,6 +1262,23 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
+  if (isCommandModalVisible()) {
+    if (e.key === 'Escape') {
+      hideCommandModal();
+      e.preventDefault();
+    } else if (e.key === 'ArrowDown') {
+      navigateCommandList(1);
+      e.preventDefault();
+    } else if (e.key === 'ArrowUp') {
+      navigateCommandList(-1);
+      e.preventDefault();
+    } else if (e.key === 'Enter') {
+      runSelectedCommand();
+      e.preventDefault();
+    }
+    return;
+  }
+
   if (isHelpModalVisible()) {
     if (e.key === 'Escape') {
       hideHelpModal();
@@ -970,6 +1351,12 @@ document.addEventListener('keydown', (e) => {
     return;
   }
 
+  if ((e.key === ':' || e.key === 'p' || e.key === 'P') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    showCommandModal();
+    e.preventDefault();
+    return;
+  }
+
   if (e.key === 'h' || e.key === 'H') {
     showHelpModal();
     e.preventDefault();
@@ -1010,6 +1397,24 @@ document.addEventListener('keydown', (e) => {
 
   if (e.key === 'e' || e.key === 'E') {
     toggleIslamicMode();
+    e.preventDefault();
+    return;
+  }
+
+  if (e.key === 'q' || e.key === 'Q') {
+    rerollMission();
+    e.preventDefault();
+    return;
+  }
+
+  if (e.key === 'x' || e.key === 'X') {
+    completeMission();
+    e.preventDefault();
+    return;
+  }
+
+  if (e.key === 'y' || e.key === 'Y') {
+    randomizeTheme();
     e.preventDefault();
     return;
   }
@@ -1141,6 +1546,34 @@ document.querySelectorAll('.tui-theme-card').forEach(card => {
   });
 });
 
+if (commandInput) {
+  commandInput.addEventListener('input', () => {
+    commandSelectionIndex = 0;
+    renderCommandList();
+  });
+}
+
+if (commandListEl) {
+  commandListEl.addEventListener('click', (e) => {
+    const item = e.target.closest('.tui-command-item');
+    if (!item) return;
+    commandSelectionIndex = parseInt(item.dataset.cmdIndex, 10) || 0;
+    runSelectedCommand();
+  });
+}
+
+if (missionRerollBtn) {
+  missionRerollBtn.addEventListener('click', () => {
+    rerollMission();
+  });
+}
+
+if (missionCompleteBtn) {
+  missionCompleteBtn.addEventListener('click', () => {
+    completeMission();
+  });
+}
+
 updateClock();
 setInterval(updateClock, 1000);
 updateFocusDisplay();
@@ -1150,6 +1583,7 @@ loadBookmarks();
 loadAsciiBg();
 fetchWeather();
 fetchNews();
+loadMissionState();
 
 (async function loadSavedTheme() {
   const result = await chrome.storage.local.get('theme');

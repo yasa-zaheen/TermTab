@@ -18,6 +18,8 @@ A minimal terminal-style new tab page Chrome extension with productivity feature
 - **Islamic Reminders** - Daily Islamic reminders
 - **Zikr Counter** - Digital dhikr/tasbih counter
 - **Focus Timer** - Pomodoro-style timer with PIN lock support
+- **Daily Mission** - Rotating daily quests with streak tracking
+- **Command Palette** - Terminal-style action launcher (`:`)
 
 ### Focus Mode
 
@@ -52,16 +54,22 @@ Set custom background images for your new tab page.
 
 | Key | Action |
 |-----|--------|
-| `/` | Focus search |
+| `i` | Upload ASCII background image |
+| `r` | Remove ASCII background |
 | `a` | Add bookmark |
 | `d` | Delete selected bookmark |
 | `Enter` | Open selected item |
 | `↑` `↓` | Navigate bookmarks/news |
 | `0-9` | Quick select bookmark / open news |
 | `h` | Open help modal |
+| `e` | Toggle Islamic mode |
 | `s` | Open settings |
 | `t` | Open themes |
 | `f` | Start focus timer |
+| `q` | Reroll daily mission |
+| `x` | Complete daily mission |
+| `y` | Theme roulette |
+| `:` | Open command palette |
 | `z` | Increment zikr counter |
 | `Esc` | Close modal / blur search |
 
