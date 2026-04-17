@@ -118,10 +118,30 @@
         </div>
       </div>
 
+      <div class="tui-widget tui-widget-mission" id="widget-mission">
+        <div class="tui-widget-header">
+          <span class="tui-widget-title">mission</span>
+          <span class="tui-widget-status" id="mission-status"></span>
+        </div>
+        <div class="tui-widget-border"></div>
+        <div class="tui-widget-body">
+          <div class="tui-mission" id="mission">
+            <div class="tui-mission-text" id="mission-text">loading mission...</div>
+            <div class="tui-mission-meta" id="mission-meta"></div>
+            <div class="tui-mission-actions">
+              <button class="tui-mission-btn" id="mission-reroll" title="reroll mission">[q] reroll</button>
+              <button class="tui-mission-btn" id="mission-complete" title="complete mission">[x] complete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="tui-widget tui-widget-help">
         <div class="tui-widget-body">
           <div class="tui-help-minimal">press <span>[h]</span> for help</div>
+          <div class="tui-help-minimal">press <span>[:]</span> for command palette</div>
           <div class="tui-help-minimal" id="bg-status"></div>
+          <div class="tui-help-minimal is-status" id="fun-status"></div>
         </div>
       </div>
     </div>
@@ -342,22 +362,50 @@
     </div>
   </div>
 
+  <div class="tui-modal" id="command-modal">
+    <div class="tui-modal-content tui-modal-command">
+      <div class="tui-modal-header">command palette</div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-body">
+        <div class="tui-input-row">
+          <span class="tui-prompt">: </span>
+          <input type="text" id="command-input" class="tui-input" placeholder="type a command...">
+        </div>
+        <div class="tui-command-list" id="command-list"></div>
+      </div>
+      <div class="tui-widget-border"></div>
+      <div class="tui-modal-footer">
+        <span>[↑ ↓] navigate</span>
+        <span class="tui-separator">  </span>
+        <span>[enter] run</span>
+        <span class="tui-separator">  </span>
+        <span>[esc] cancel</span>
+      </div>
+    </div>
+  </div>
+
   <div class="tui-modal" id="help-modal">
     <div class="tui-modal-content">
       <div class="tui-modal-header">keyboard shortcuts</div>
       <div class="tui-widget-border"></div>
       <div class="tui-modal-body">
         <div class="tui-help-list">
-          <div class="tui-help-row"><span class="tui-help-key">/</span><span>focus search</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">i</span><span>upload ascii background</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">r</span><span>remove ascii background</span></div>
           <div class="tui-help-row"><span class="tui-help-key">a</span><span>add bookmark</span></div>
           <div class="tui-help-row"><span class="tui-help-key">d</span><span>delete selected bookmark</span></div>
           <div class="tui-help-row"><span class="tui-help-key">enter</span><span>open selected item</span></div>
           <div class="tui-help-row"><span class="tui-help-key">↑ ↓</span><span>navigate bookmarks / news</span></div>
           <div class="tui-help-row"><span class="tui-help-key">0-9</span><span>quick select bookmark / open news</span></div>
           <div class="tui-help-row"><span class="tui-help-key">h</span><span>open this help</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">e</span><span>toggle islamic mode</span></div>
           <div class="tui-help-row"><span class="tui-help-key">s</span><span>settings</span></div>
           <div class="tui-help-row"><span class="tui-help-key">t</span><span>themes</span></div>
           <div class="tui-help-row"><span class="tui-help-key">f</span><span>focus timer</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">q</span><span>reroll mission</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">x</span><span>complete mission</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">y</span><span>theme roulette</span></div>
+          <div class="tui-help-row"><span class="tui-help-key">:</span><span>command palette</span></div>
           <div class="tui-help-row"><span class="tui-help-key">esc</span><span>close modal / blur search</span></div>
         </div>
       </div>
