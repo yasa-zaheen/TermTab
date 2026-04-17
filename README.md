@@ -33,7 +33,7 @@ Block distracting websites during focus sessions. Pre-configured to block:
 
 ### Themes
 
-Choose from 8 built-in themes:
+Choose from 9 built-in themes:
 - Terminal (default)
 - Monokai
 - One Dark
@@ -42,6 +42,7 @@ Choose from 8 built-in themes:
 - Nord
 - Gruvbox
 - Solarized
+- Rose Pine (Dawn in light mode)
 
 ### Custom Background
 

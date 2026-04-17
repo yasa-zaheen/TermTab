@@ -812,7 +812,7 @@ async function loadThemeSelection() {
 async function applyTheme(themeName) {
   document.body.classList.remove(
     'theme-monokai', 'theme-one-dark', 'theme-catppuccin', 'theme-dracula',
-    'theme-nord', 'theme-gruvbox', 'theme-solarized'
+    'theme-nord', 'theme-gruvbox', 'theme-solarized', 'theme-rose-pine'
   );
   if (themeName !== 'tui-dark') {
     document.body.classList.add(`theme-${themeName}`);

@@ -1507,3 +1507,43 @@ body.theme-solarized {
     --ascii-opacity: 0.1;
   }
 }
+
+/* Theme: Rose Pine (Dawn in light mode) */
+body.theme-rose-pine {
+  --bg: #191724;
+  --widget-bg: #1f1d2e;
+  --fg: #e0def4;
+  --border: #403d52;
+  --accent: #c4a7e7;
+  --accent-dim: #31748f;
+  --selected-bg: #403d52;
+  --modal-bg: #1f1d2e;
+  --input-bg: #26233a;
+  --red: #eb6f92;
+  --yellow: #f6c177;
+  --modal-overlay: rgba(0, 0, 0, 0.72);
+  --icon-filter: grayscale(100%) brightness(1.2);
+  --icon-filter-hover: grayscale(0%) brightness(1);
+  --status-color: #6e6a86;
+  --ascii-opacity: 0.06;
+}
+@media (prefers-color-scheme: light) {
+  body.theme-rose-pine {
+    --bg: #faf4ed;
+    --widget-bg: #fffaf3;
+    --fg: #575279;
+    --border: #dfdad9;
+    --accent: #907aa9;
+    --accent-dim: #286983;
+    --selected-bg: #dfdad9;
+    --modal-bg: #fffaf3;
+    --input-bg: #f2e9e1;
+    --red: #b4637a;
+    --yellow: #ea9d34;
+    --modal-overlay: rgba(0, 0, 0, 0.28);
+    --icon-filter: grayscale(100%) brightness(0.8);
+    --icon-filter-hover: grayscale(0%) brightness(1);
+    --status-color: #9893a5;
+    --ascii-opacity: 0.1;
+  }
+}
